@@ -1,13 +1,16 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
-        "rootDir": "./",
-        "esModuleInterop": true,
-        "strict": true,
-    },
-    "include": [
-        "**/*"
-    ],
-    "exclude": []
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "strict": true,
+  },
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "data"
+  ]
 }

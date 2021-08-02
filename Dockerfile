@@ -12,4 +12,7 @@ COPY --chown=node:node . .
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+ADD start.sh /
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]

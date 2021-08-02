@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.9"
 
 services:
   ms:
@@ -6,6 +6,30 @@ services:
     container_name: microsservice
 
     volumes:
-      - ".:/usr/src/api"
+    - ".:/usr/src/api"
     ports:
-      - "3000:3000"
+    - "3000:3000"
+    env_file: 
+    - .env
+    networks:
+    - ms-network
+    depends_on:
+        - mysql-ms
+  mysql-ms:
+    container_name: 'mysql-ms'
+    image: mysql:5.7
+    command: --disable-partition-engine-check --init-file /docker-entrypoint-initdb.d/init.sql
+    volumes: 
+      - ./data:/var/lib/mysql/
+      - ./init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+    networks:
+      - ms-network
+    ports: 
+      - "${MYSQL_PORT}:3306"
+    env_file: .env
+networks:
+  ms-network:
+    driver: bridge
+    external:
+      name: kafka-network
