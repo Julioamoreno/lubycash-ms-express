@@ -4,6 +4,7 @@ import Kafka from '../Services/Kafka';
 import { validationResult } from 'express-validator';
 
 import Clients from '../models/clients';
+import CheckClientsController from './CheckClientController';
 
 const ClientsController = {
   list: async (req: express.Request , res: express.Response) => {
@@ -15,29 +16,25 @@ const ClientsController = {
       res.status(400).send(err);
     }
   },
-  store: async (req: express.Request , res: express.Response) => {
+  store: async (Client: Clients) => {
     try {
-      const errors = validationResult(req);
-      console.log(errors)
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-      const { full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary }: Clients = req.body;
+      const { full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary } = Client;
       await database('Clients').insert({ full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary });
-      const kafka = new Kafka({ groupId: 'kafkajs' });
-      await kafka.send({
-        topic: 'clients',
-        value: 
-          JSON.stringify(
-            { 
-              full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary 
-            }
-          )
-      });
-      return res.send('a')
+      CheckClientsController.store(Client);
+      return express.response.send(`Cliente ${full_name} colocado na esteira de aprovação`)
     } catch (err) {
       console.log(err);
-      return res.status(400).send(err)
+      return express.response.status(400).send(err);
+    }
+  },
+  update: async (Client: Clients) => {
+    try {
+      await database('Clients').update(Client)
+      const kafka = new Kafka({ groupId: 'client' })
+      kafka.send({ topic: 'client_approved', value: JSON.stringify(Client) })
+    } catch (err) {
+      console.log(err);
+      return express.response.status(400).send(err);
     }
   },
   destroy: async (req: express.Request , res: express.Response) => {

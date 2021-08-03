@@ -8,8 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const kafkajs_1 = require("kafkajs");
+const ClientsControllers_1 = __importDefault(require("../Controllers/ClientsControllers"));
+const CheckClientController_1 = __importDefault(require("../Controllers/CheckClientController"));
 class KafkaConsumer {
     constructor({ groupId }) {
         const kafka = new kafkajs_1.Kafka({
@@ -18,13 +23,26 @@ class KafkaConsumer {
         this.producer = kafka.producer();
         this.consumer = kafka.consumer({ groupId });
     }
-    consume({ topic }) {
+    consumeNewClient() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.consumer.connect();
-            yield this.consumer.subscribe({ topic, fromBeginning: false });
+            yield this.consumer.subscribe({ topic: 'newclient', fromBeginning: false });
             yield this.consumer.run({
-                eachMessage: ({ topic, partition, message }) => __awaiter(this, void 0, void 0, function* () {
-                    yield message;
+                eachMessage: ({ message }) => __awaiter(this, void 0, void 0, function* () {
+                    const client = JSON.parse(message.value.toString());
+                    yield ClientsControllers_1.default.store(client);
+                })
+            });
+        });
+    }
+    checkAvailable() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.consumer.connect();
+            yield this.consumer.subscribe({ topic: 'checkClientAvailable', fromBeginning: false });
+            yield this.consumer.run({
+                eachMessage: ({ message }) => __awaiter(this, void 0, void 0, function* () {
+                    const client = JSON.parse(message.value.toString());
+                    return yield CheckClientController_1.default.show(client);
                 })
             });
         });

@@ -7,5 +7,7 @@ export default interface Clients {
   city: string;
   state: string;
   zipcode: string;
+  status?: string;
   average_salary: number;
+  current_balance?: number;
 } 

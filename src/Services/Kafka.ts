@@ -1,4 +1,7 @@
 import { Kafka, Consumer, Producer, Message } from 'kafkajs';
+import ClientsControllers from '../Controllers/ClientsControllers';
+import CheckClientController from '../Controllers/CheckClientController';
+import Client from '../models/clients';
 
 interface Topic {
   topic: string | RegExp;
@@ -25,13 +28,26 @@ export default class KafkaConsumer {
     this.consumer = kafka.consumer({ groupId })
   }
 
-  async consume({ topic }: Topic) {
+  async consumeNewClient() {
     await this.consumer.connect();
-    await this.consumer.subscribe({ topic, fromBeginning: false });
+    await this.consumer.subscribe({ topic: 'newclient', fromBeginning: false });
 
     await this.consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          await message
+        eachMessage: async ({ message }) => {
+          const client: Client = JSON.parse(message.value!.toString());
+          await ClientsControllers.store(client)
+        }   
+    })
+  }
+
+  async checkAvailable() {
+    await this.consumer.connect();
+    await this.consumer.subscribe({ topic: 'checkClientAvailable', fromBeginning: false });
+
+    await this.consumer.run({
+        eachMessage: async ({ message }) => {
+          const client: Client = JSON.parse(message.value!.toString());
+          return await CheckClientController.show(client)
         }   
     })
   }

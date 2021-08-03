@@ -4,6 +4,5 @@ import ValidatorClients from '../validators/clients'
 const Router = express.Router();
 
 Router.get('/', ClientsController.list)
-Router.post('/',  ValidatorClients, ClientsController.store)
 
 export default Router;
