@@ -18,7 +18,7 @@ export default checkSchema({
     email:{
       isEmail: {
         errorMessage: 'The field must be an email.',
-      }
+      },
     },
     phone:{
       isString: {
@@ -29,6 +29,10 @@ export default checkSchema({
       isString: {
         errorMessage: 'The field cpf_number must be a string.',
       },
+      isLength: {
+        errorMessage: 'The field cpf_number should be at most 11 chars string',
+        options: { max: 11 }
+      }
     },
     address: {
       isString: {

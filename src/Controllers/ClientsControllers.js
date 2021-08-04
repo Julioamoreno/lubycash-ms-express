@@ -33,12 +33,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
 const Database_1 = __importDefault(require("../Database"));
-const Kafka_1 = __importDefault(require("../Services/Kafka"));
+const express_validator_1 = require("express-validator");
 const CheckClientController_1 = __importDefault(require("./CheckClientController"));
+const Kafka_1 = __importDefault(require("../Services/Kafka"));
 const ClientsController = {
     list: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const client = yield Database_1.default('Clients').first();
+            const client = yield Database_1.default('Clients');
             return res.json(client);
         }
         catch (err) {
@@ -46,23 +47,42 @@ const ClientsController = {
             res.status(400).send(err);
         }
     }),
-    store: (Client) => __awaiter(void 0, void 0, void 0, function* () {
+    store: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary } = Client;
-            yield Database_1.default('Clients').insert({ full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary });
-            CheckClientController_1.default.store(Client);
-            return express.response.send(`Cliente ${full_name} colocado na esteira de aprovação`);
+            const errors = express_validator_1.validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            const { full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary } = req.body;
+            const client = { full_name, email, phone, cpf_number, address, city, state, zipcode, average_salary };
+            yield Database_1.default('Clients').insert(client).then((result) => {
+                CheckClientController_1.default.store(result, client);
+                return res.json({ message: 'Dados enviados com sucesso, aguarde ao email com a resposta.' });
+            }).catch((err) => res.status(400).send(err));
         }
         catch (err) {
             console.log(err);
-            return express.response.status(400).send(err);
+            return res.status(400).send(err);
         }
     }),
-    update: (Client) => __awaiter(void 0, void 0, void 0, function* () {
+    update: (id, Client) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            yield Database_1.default('Clients').update(Client);
-            const kafka = new Kafka_1.default({ groupId: 'client' });
-            kafka.send({ topic: 'client_approved', value: JSON.stringify(Client) });
+            yield Database_1.default('Clients')
+                .update(Client)
+                .where({ id })
+                .then((result) => {
+                console.log(result);
+                const kafka = new Kafka_1.default({ groupId: 'sendClient' });
+                if (Client.status === 'approved') {
+                    console.log('approved');
+                    kafka.send({ topic: 'client_approved', value: JSON.stringify(Object.assign(Object.assign({}, Client), { id })) });
+                }
+                else {
+                    kafka.send({ topic: 'client_disapproved', value: JSON.stringify(Object.assign(Object.assign({}, Client), { id })) });
+                }
+            }).catch((err) => {
+                console.log(err);
+            });
         }
         catch (err) {
             console.log(err);

@@ -25,20 +25,20 @@ export default class KafkaConsumer {
         brokers: ['kafkaservice:9092']
     })
     this.producer = kafka.producer()
-    this.consumer = kafka.consumer({ groupId })
+    this.consumer = kafka.consumer({ groupId, allowAutoTopicCreation: true })
   }
 
-  async consumeNewClient() {
-    await this.consumer.connect();
-    await this.consumer.subscribe({ topic: 'newclient', fromBeginning: false });
+  // async consumeNewClient() {
+  //   await this.consumer.connect();
+  //   await this.consumer.subscribe({ topic: 'newclient', fromBeginning: true });
 
-    await this.consumer.run({
-        eachMessage: async ({ message }) => {
-          const client: Client = JSON.parse(message.value!.toString());
-          await ClientsControllers.store(client)
-        }   
-    })
-  }
+  //   await this.consumer.run({
+  //       eachMessage: async ({ message }) => {
+  //         const client: Client = JSON.parse(message.value!.toString());
+          
+  //       }   
+  //   })
+  // }
 
   async checkAvailable() {
     await this.consumer.connect();

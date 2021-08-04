@@ -10,12 +10,9 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true}))
 const run = async () => {
   app.listen(PORT, () => {
-  console.log(`Microsservice is running at https://localhost:${PORT}`);
-});
-  const kafka = new KafkaConsumer({ groupId: 'client' });
-  await kafka.consumeNewClient();
+    console.log(`Microsservice is running at https://localhost:${PORT}`);
+  });
 }
-
 
 app.use('/client', clients)
 

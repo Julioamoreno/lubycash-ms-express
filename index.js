@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const clients_1 = __importDefault(require("./src/routes/clients"));
-const Kafka_1 = __importDefault(require("./src/Services/Kafka"));
 require('dotenv').config();
 const app = express_1.default();
 const PORT = 3000;
@@ -24,8 +23,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     app.listen(PORT, () => {
         console.log(`Microsservice is running at https://localhost:${PORT}`);
     });
-    const kafka = new Kafka_1.default({ groupId: 'client' });
-    yield kafka.consumeNewClient();
 });
 app.use('/client', clients_1.default);
 run();

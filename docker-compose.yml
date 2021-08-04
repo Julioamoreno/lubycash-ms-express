@@ -28,6 +28,8 @@ services:
     ports: 
       - "${MYSQL_PORT}:3306"
     env_file: .env
+    environment: 
+      -  ${MYSQL_ROOT_PASSWORD}
 networks:
   ms-network:
     driver: bridge

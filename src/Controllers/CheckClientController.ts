@@ -5,16 +5,16 @@ import database from '../Database';
 import KafkaConsumer from '../Services/Kafka';
 
 const CheckClientsController = {
-  store: async (ClientData: Clients) => {
+  store: async (id: number[], clientData: Clients) => {
     try {
-      if (ClientData.average_salary >= 501) {
-        ClientData.status = 'approved';
-        ClientData.current_balance = 200.00;
+      if (clientData.average_salary >= 501) {
+        clientData.status = 'approved';
+        clientData.current_balance = 200.00;
       } else {
-        ClientData.status = 'disapproved';
-        ClientData.current_balance = 0;
+        clientData.status = 'disapproved';
+        clientData.current_balance = 0;
       }
-      ClientsController.update(ClientData)
+      ClientsController.update(id, clientData)
     } catch (err) {
       throw new Error(err);
     }
@@ -23,8 +23,7 @@ const CheckClientsController = {
     const client = await database('Clients')
       .where('cpf_number', clients.cpf_number)
       .orWhere('email', clients.email);
-    console.log(client)
-  
+      
     const kafka = new KafkaConsumer({ groupId: 'sendClient' })
     return kafka.send({ topic: clients.cpf_number.toString(), value: JSON.stringify(client) });
   }

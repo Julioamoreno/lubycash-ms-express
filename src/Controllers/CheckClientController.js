@@ -16,17 +16,17 @@ const ClientsControllers_1 = __importDefault(require("./ClientsControllers"));
 const Database_1 = __importDefault(require("../Database"));
 const Kafka_1 = __importDefault(require("../Services/Kafka"));
 const CheckClientsController = {
-    store: (ClientData) => __awaiter(void 0, void 0, void 0, function* () {
+    store: (id, clientData) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            if (ClientData.average_salary >= 501) {
-                ClientData.status = 'approved';
-                ClientData.current_balance = 200.00;
+            if (clientData.average_salary >= 501) {
+                clientData.status = 'approved';
+                clientData.current_balance = 200.00;
             }
             else {
-                ClientData.status = 'disapproved';
-                ClientData.current_balance = 0;
+                clientData.status = 'disapproved';
+                clientData.current_balance = 0;
             }
-            ClientsControllers_1.default.update(ClientData);
+            ClientsControllers_1.default.update(id, clientData);
         }
         catch (err) {
             throw new Error(err);
@@ -36,7 +36,6 @@ const CheckClientsController = {
         const client = yield Database_1.default('Clients')
             .where('cpf_number', clients.cpf_number)
             .orWhere('email', clients.email);
-        console.log(client);
         const kafka = new Kafka_1.default({ groupId: 'sendClient' });
         return kafka.send({ topic: clients.cpf_number.toString(), value: JSON.stringify(client) });
     })

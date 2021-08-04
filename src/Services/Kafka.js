@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const kafkajs_1 = require("kafkajs");
-const ClientsControllers_1 = __importDefault(require("../Controllers/ClientsControllers"));
 const CheckClientController_1 = __importDefault(require("../Controllers/CheckClientController"));
 class KafkaConsumer {
     constructor({ groupId }) {
@@ -21,20 +20,17 @@ class KafkaConsumer {
             brokers: ['kafkaservice:9092']
         });
         this.producer = kafka.producer();
-        this.consumer = kafka.consumer({ groupId });
+        this.consumer = kafka.consumer({ groupId, allowAutoTopicCreation: true });
     }
-    consumeNewClient() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.consumer.connect();
-            yield this.consumer.subscribe({ topic: 'newclient', fromBeginning: false });
-            yield this.consumer.run({
-                eachMessage: ({ message }) => __awaiter(this, void 0, void 0, function* () {
-                    const client = JSON.parse(message.value.toString());
-                    yield ClientsControllers_1.default.store(client);
-                })
-            });
-        });
-    }
+    // async consumeNewClient() {
+    //   await this.consumer.connect();
+    //   await this.consumer.subscribe({ topic: 'newclient', fromBeginning: true });
+    //   await this.consumer.run({
+    //       eachMessage: async ({ message }) => {
+    //         const client: Client = JSON.parse(message.value!.toString());
+    //       }   
+    //   })
+    // }
     checkAvailable() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.consumer.connect();
